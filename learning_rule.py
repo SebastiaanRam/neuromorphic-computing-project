@@ -18,7 +18,7 @@ def get_a_synaptic_input(w, x):
     #     noise = get_noise()
     #     for j in range(n_input):
     #         a_input[i] = w[i][j] * x[j] + noise
-    return np.dot(weights, x) + get_noise()
+    return np.dot(w, x) + get_noise()
 
 
 def get_x_neuron_activity(y_star, weights):
@@ -91,7 +91,7 @@ weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
 
 target_position_l = np.random.choice([-1, 1], size=3)
 current_position_l = np.zeros(3)
-# Eigth corners of a cube
+# Eigth corners of a cube, probably should be 2 dimensional in case of gridworld
 target_directions = np.array([[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1],
                               [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]])
 target_directions = target_directions / np.linalg.norm(target_directions, axis=1, keepdims=True)
@@ -153,6 +153,7 @@ for t in time_steps:
     delta_weights = learning_rate * np.dot(x_activities, np.dot(a_difference, r_difference))
     print(delta_weights)
     weights += delta_weights
+    print(weights)
     # 6) Finally, if the new  cursor location was close to the target (i.e., if l(t) l*(t)  0.05),
     # we deemed it a hit, and the trial ended. Otherwise, we simulated another
     # time step and returned to computation step 1. In summary, every trial
