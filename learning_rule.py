@@ -65,7 +65,7 @@ def r_ang(y, y_star):
     """Angle between movement direction and desired direction"""
     print(f"Y: {y}")
     print(f"Y_star: {y_star}")
-    r_t = np.dot(y.T, y_star) * np.linalg.norm(y)  # TODO: y should be transposed
+    r_t = np.dot(y, y_star) * np.linalg.norm(y)  # TODO: y should be transposed
     print(f"R_ang {r_t}")
     return r_t
 
@@ -90,9 +90,11 @@ weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
 
 target_position_l = np.random.choice([-1, 1], size=3)
 current_position_l = np.zeros(3)
-# Eigth corners of a cube, probably should be 2 dimensional in case of gridworld
-target_directions = np.array([[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1],
-                              [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]])
+# The old directions as written in the paper, Eigth corners of a cube
+# target_directions = np.array([[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1],
+#                               [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]])
+# 4 corners of the gridworld
+target_directions = np.array([[1, 1], [1, -1], [-1, 1], [-1, -1]])
 target_directions = target_directions / np.linalg.norm(target_directions, axis=1, keepdims=True)
 R_t = 0
 old_a_input = 0
@@ -108,7 +110,7 @@ for t in time_steps:
     #  position l*(t) and the current cursor position l(t). By convention, the
     #  desired direction y*(t) had unit Euclidean norm.
     y_star = target_position_l - current_position_l
-    # Normalize y_star
+    # Normalize y_star (Desired direction)
     y_star = y_star / np.linalg.norm(y_star)
     # (2) From the desired movement direction y*(t),
     # the activities x1(t), . . . ,xm(t) of the neurons
@@ -127,7 +129,7 @@ for t in time_steps:
     # modeled recorded neurons were used to determine the cursor velocity via
     # their population activity vector,described in Equation 9 below in Simulation
     # details, Generating cursor movements from neural activity.
-    y_t = get_cursor_velocity(s_activities)
+    y_t = [get_cursor_velocity(s_activities), get_cursor_velocity(s_activities), get_cursor_velocity(s_activities)]
     print(f"len y : {y_t}")
     # (5) The synaptic
     # weights wij defined in Equation 2 were updated according to a learning
@@ -147,9 +149,10 @@ for t in time_steps:
     a_difference = (a_input - a_input_hat)
     r_difference = (R_t - R_hat)
     print(f"len a {len(a_difference)}")
-    print(f"len r {len(r_difference)}")
+    print(a_difference.shape)
+    print(f"len r {r_difference}")
     print(f"len x {len(x_activities)}")
-    delta_weights = learning_rate * np.dot(x_activities, np.dot(a_difference, r_difference))
+    delta_weights = learning_rate * np.dot(np.dot(x_activities, a_difference), r_difference)
     print(delta_weights)
     weights += delta_weights
     print(weights)
@@ -159,4 +162,5 @@ for t in time_steps:
     # was simulated as follows:
     if np.linalg.norm(current_position_l - target_position_l) < 0.05: # not sure if this needs to be normalized
         print(f"Finished timestep: {t}")
+        print(f"Final weights: {weights}")
         break
