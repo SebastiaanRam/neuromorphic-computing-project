@@ -85,15 +85,12 @@ variance = 1  # Variance for the noise distribution
 n_input = 100
 n_total = 340
 n_recorded = 40
-d = 3  # movement dimensionality
+d = 2  # movement dimensionality
 # ,a timestep in our simulation corresponded to 1/30s in biological time.
 weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
 
-target_position_l = np.random.choice([-1, 1], size=3)
+target_position_l = np.random.choice([-1, 1], size=d)
 current_position_l = np.zeros(3)
-# The old directions as written in the paper, Eigth corners of a cube
-# target_directions = np.array([[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1],
-#                               [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]])
 # 4 corners of the gridworld
 target_directions = np.array([[1, 1], [1, -1], [-1, 1], [-1, -1]])
 target_directions = target_directions / np.linalg.norm(target_directions, axis=1, keepdims=True)
@@ -130,7 +127,7 @@ for t in time_steps:
     # modeled recorded neurons were used to determine the cursor velocity via
     # their population activity vector,described in Equation 9 below in Simulation
     # details, Generating cursor movements from neural activity.
-    y_t = [get_cursor_velocity(s_activities), get_cursor_velocity(s_activities), get_cursor_velocity(s_activities)]
+    y_t = [get_cursor_velocity(s_activities), get_cursor_velocity(s_activities)]
     print(f"len y : {y_t}")
     # (5) The synaptic
     # weights wij defined in Equation 2 were updated according to a learning
