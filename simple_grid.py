@@ -5,7 +5,8 @@ import gymnasium as gym
 import gym_simplegrid
 
 env = gym.make('SimpleGrid-8x8-v0', render_mode='human')
-obs, info = env.reset()
+default_options = {"start_loc": (0, 0)}  # starting position
+obs, info = env.reset(options=default_options)
 done = env.unwrapped.done
 
 for _ in range(50):

@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  gymenv:
+    build:
+      context: .
+    environment:
+      DISPLAY: host.docker.internal:0.0
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    devices:
+      - /dev/dri
+    entrypoint: ["python3"]
+    command: ["test.py"] # Default script; override as needed
