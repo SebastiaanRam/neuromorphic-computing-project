@@ -22,6 +22,7 @@ def get_a_synaptic_input(w, x):
 
 
 def get_x_neuron_activity(y_star, weights):
+    #Smiltis, page 4 end
     # TODO: Let Q be the 3 ntotal matrix where column i is given by qi from
     #  Equation 1 for i 1,...,ntotal.
     Q = np.zeros((3, n_total))
