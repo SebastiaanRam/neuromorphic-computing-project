@@ -25,7 +25,7 @@ def get_x_neuron_activity(y_star, weights):
     #Smiltis, page 4 end
     # TODO: Let Q be the 3 ntotal matrix where column i is given by qi from
     #  Equation 1 for i 1,...,ntotal.
-    Q = np.zeros((3, n_total))
+    Q = np.zeros((d, n_total))
     Q_inverse = np.linalg.pinv(Q)
     s_tilde = np.dot(Q_inverse, y_star)
     W_total = weights  # TODO: This is wrong, should be the weights before learning
@@ -78,7 +78,9 @@ def low_pass_filter(previous, current, alpha=0.2):
 
 # Simulation params
 max_t = 100
-time_steps = np.arange(0, max_t)
+# ,a timestep in our simulation corresponded to 1/30s in biological time.
+biological_time = 1/30
+time_steps = np.arange(0, max_t * biological_time, biological_time)
 learning_rate = 0.01
 variance = 1  # Variance for the noise distribution
 # Parameters
@@ -86,11 +88,10 @@ n_input = 100
 n_total = 340
 n_recorded = 40
 d = 2  # movement dimensionality
-# ,a timestep in our simulation corresponded to 1/30s in biological time.
 weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
 
 target_position_l = np.random.choice([-1, 1], size=d)
-current_position_l = np.zeros(3)
+current_position_l = np.zeros(d)
 # 4 corners of the gridworld
 target_directions = np.array([[1, 1], [1, -1], [-1, 1], [-1, -1]])
 target_directions = target_directions / np.linalg.norm(target_directions, axis=1, keepdims=True)
