@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 
 
@@ -54,23 +54,34 @@ def get_noise():
     return np.random.normal(0, np.sqrt(variance))
 
 
-def get_cursor_velocity(s_activities):
-    # TODO: calculate the values for the variables
-    k_s = 1  # Constant to convert magnitude of population vector to speed
-    alpha = 1
-    beta = 1
-    p = 1  # Scaling factor
-    scaled_activities = ((s_activities - beta) / alpha) * p
-    return k_s * d / n_input * np.sum(scaled_activities)
-    # k_s = 1  # Constant to convert magnitude of population vector to speed
-    # # TODO: calculate the values for the variables
-    # beta = 1
-    # alpha = 1
-    # p = 1
-    # total = 0
-    # for i in range(n_recorded):  # Not sure if this should be recored neurons or input neurons
-    #     total += ((s_activities[i] - beta) / alpha) * p
-    # return k_s * d / n_input * total
+def get_cursor_velocity(s_activities, p_directions, k_s=0.03, alpha=1, beta=0, d=2):
+    """
+    Compute the cursor velocity from neuron activities.
+
+    Parameters:
+    - s_activities: Array of neuron activities (shape: [n_neurons]).
+    - p_directions: Array of preferred directions for neurons (shape: [n_neurons, d]).
+    - k_s: Speed factor (default: 0.03).
+    - alpha: Normalization scaling factor for activities.
+    - beta: Offset factor for activities.
+    - d: Dimensionality of the movement space (e.g., 2 for 2D).
+
+    Returns:
+    - y_t: Cursor velocity vector (shape: [d]).
+    """
+    # Normalize activities
+    normalized_activities = (s_activities - beta) / alpha
+
+    # Compute the population vector
+    population_vector = np.sum(
+        (normalized_activities[:, np.newaxis] * p_directions), axis=0
+    )
+
+    # Scale by the speed factor and dimensionality
+    y_t = k_s * (d / len(s_activities)) * population_vector
+    print(y_t)
+
+    return y_t
 
 
 def r_ang(y, y_star):
@@ -114,10 +125,10 @@ old_a_input = 0
 total_rewards = []
 
 # Setup environment
-env = gym.make("LunarLander-v2", render_mode="human")
+env = gym.make("LunarLander-v3", render_mode="human")
 # Reset environment
 actions = [0,1,2,3]
-episodes = 100
+episodes = 1000
 for i in range(episodes):
     state, info = env.reset()
     # print(f"state: {state}")
