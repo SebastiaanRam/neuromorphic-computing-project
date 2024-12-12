@@ -1,3 +1,4 @@
+import gym
 import numpy as np
 
 
@@ -72,6 +73,12 @@ def get_cursor_velocity(s_activities):
     # return k_s * d / n_input * total
 
 
+def reward(y, y_star):
+    # Y: current location
+    # y_star: Desired direction
+    pass
+
+
 def r_ang(y, y_star):
     """Angle between movement direction and desired direction"""
     print(f"Y: {y}")
@@ -89,7 +96,7 @@ def low_pass_filter(previous, current, alpha=0.2):
 # Simulation params
 max_t = 100
 # ,a timestep in our simulation corresponded to 1/30s in biological time.
-biological_time = 1/30
+biological_time = 1 / 30
 time_steps = np.arange(0, max_t * biological_time, biological_time)
 learning_rate = 0.01
 variance = 1  # Variance for the noise distribution
@@ -107,7 +114,20 @@ target_directions = np.array([[1, 1], [1, -1], [-1, 1], [-1, -1]])
 target_directions = target_directions / np.linalg.norm(target_directions, axis=1, keepdims=True)
 R_t = 0
 old_a_input = 0
+
+total_rewards = []
+
+# Setup environment
+env = gym.make("LunarLander-v2")
+# Reset environment
+state, info = env.reset()
+
 for t in time_steps:
+    # Random action
+    action = env.action_space.sample()
+    # Take a step in the environment
+    next_state, reward, done, truncated, info = env.step(action)
+    total_rewards.append(reward)
     # Generate noise at each timestep from zero mean distribution:
 
     # TODO: determine x_activities
@@ -156,7 +176,7 @@ for t in time_steps:
     print(f"R hat {R_hat}")
 
     a_difference = (a_input - a_input_hat)
-    r_difference = (R_t - R_hat)
+    r_difference = (reward - np.mean(total_rewards))
     print(f"len a {len(a_difference)}")
     print(a_difference.shape)
     print(f"len r {r_difference}")
@@ -170,7 +190,7 @@ for t in time_steps:
     # we deemed it a hit, and the trial ended. Otherwise, we simulated another
     # time step and returned to computation step 1. In summary, every trial
     # was simulated as follows:
-    if np.linalg.norm(current_position_l - target_position_l) < 0.05: # not sure if this needs to be normalized
+    if np.linalg.norm(current_position_l - target_position_l) < 0.05:  # not sure if this needs to be normalized
         print(f"Finished timestep: {t}")
         print(f"Final weights: {weights}")
         break
