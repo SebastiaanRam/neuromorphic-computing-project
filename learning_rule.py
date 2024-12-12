@@ -95,11 +95,11 @@ time_steps = np.arange(0, max_t * biological_time, biological_time)
 learning_rate = 0.01
 variance = 1  # Variance for the noise distribution
 # Parameters
-n_input = 100
-n_total = 340
-# n_input = 4
-# n_total = 1
-n_recorded = 40
+# n_input = 100
+# n_total = 340
+n_input = 4
+n_total = 1
+n_recorded = 4
 d = 2  # movement dimensionality
 weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
 
@@ -172,9 +172,9 @@ for i in range(episodes):
         # rule, defined by Equation 16 below in Results.
         # EH rule
         # TODO: Can be removed i think
-        # new_R_t = r_ang(y_t, y_star)
-        # R_hat = low_pass_filter(R_t, new_R_t)
-        # R_t = new_R_t
+        new_R_t = r_ang(y_t, y_star)
+        R_hat = low_pass_filter(R_t, new_R_t)
+        R_t = new_R_t
 
         a_input_hat = low_pass_filter(old_a_input, a_input)
         old_a_input = a_input
@@ -182,7 +182,7 @@ for i in range(episodes):
         print(f"A input hat {a_input_hat}")
 
         a_difference = (a_input - a_input_hat)
-        r_difference = (reward - np.mean(total_rewards))
+        r_difference = (R_t - R_hat)
         print(f"len a {len(a_difference)}")
         print(f"len r {r_difference}")
         print(f"len x {len(x_activities)}")
