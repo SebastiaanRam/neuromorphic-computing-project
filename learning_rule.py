@@ -125,7 +125,7 @@ old_a_input = 0
 total_rewards = []
 
 # Setup environment
-env = gym.make("LunarLander-v2", render_mode="human")
+env = gym.make("LunarLander-v3", render_mode="human")
 # Reset environment
 actions = [1,1,1,1]
 episodes = 1000
