@@ -161,7 +161,8 @@ for t in time_steps:
     print(a_difference.shape)
     print(f"len r {r_difference}")
     print(f"len x {len(x_activities)}")
-    delta_weights = learning_rate * np.dot(np.dot(x_activities, a_difference), r_difference)
+    # delta_weights = learning_rate * np.dot(np.dot(x_activities, a_difference), r_difference)
+    delta_weights = learning_rate * np.outer(x_activities, a_difference).T * r_difference
     print(delta_weights)
     weights += delta_weights
     print(weights)
