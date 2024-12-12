@@ -73,12 +73,6 @@ def get_cursor_velocity(s_activities):
     # return k_s * d / n_input * total
 
 
-def reward(y, y_star):
-    # Y: current location
-    # y_star: Desired direction
-    pass
-
-
 def r_ang(y, y_star):
     """Angle between movement direction and desired direction"""
     print(f"Y: {y}")
@@ -101,11 +95,11 @@ time_steps = np.arange(0, max_t * biological_time, biological_time)
 learning_rate = 0.01
 variance = 1  # Variance for the noise distribution
 # Parameters
-# n_input = 100
-# n_total = 340
-n_input = 4
-n_total = 1
-n_recorded = 1
+n_input = 100
+n_total = 340
+# n_input = 4
+# n_total = 1
+n_recorded = 40
 d = 2  # movement dimensionality
 weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
 
@@ -166,7 +160,7 @@ for i in range(episodes):
         # Equations 2 and 3 above.
         a_input = get_a_synaptic_input(weights, x_activities)
         s_activities = get_s_neuron_activity(a_input)
-        print(s_activities)
+        print(f"S activities: {s_activities}")
         # (4) The activities s1(t),...,sn(t) of the subset of
         # modeled recorded neurons were used to determine the cursor velocity via
         # their population activity vector,described in Equation 9 below in Simulation
@@ -177,28 +171,27 @@ for i in range(episodes):
         # weights wij defined in Equation 2 were updated according to a learning
         # rule, defined by Equation 16 below in Results.
         # EH rule
-        new_R_t = r_ang(y_t, y_star)
-        R_hat = low_pass_filter(R_t, new_R_t)
-        R_t = new_R_t
+        # TODO: Can be removed i think
+        # new_R_t = r_ang(y_t, y_star)
+        # R_hat = low_pass_filter(R_t, new_R_t)
+        # R_t = new_R_t
 
         a_input_hat = low_pass_filter(old_a_input, a_input)
         old_a_input = a_input
         print(f"A input {a_input}")
         print(f"A input hat {a_input_hat}")
-        print(f"R t {R_t}")
-        print(f"R hat {R_hat}")
 
         a_difference = (a_input - a_input_hat)
         r_difference = (reward - np.mean(total_rewards))
         print(f"len a {len(a_difference)}")
-        print(a_difference.shape)
         print(f"len r {r_difference}")
         print(f"len x {len(x_activities)}")
         # delta_weights = learning_rate * np.dot(np.dot(x_activities, a_difference), r_difference)
         delta_weights = learning_rate * np.outer(x_activities, a_difference).T * r_difference
-        print(delta_weights)
+        print(f"Delta weights: {delta_weights}")
         weights += delta_weights
-        print(weights)
+        print(f"Post update weights: {weights}")
+        state = next_state
         # 6) Finally, if the new  cursor location was close to the target (i.e., if l(t) l*(t)  0.05),
         # we deemed it a hit, and the trial ended. Otherwise, we simulated another
         # time step and returned to computation step 1. In summary, every trial
