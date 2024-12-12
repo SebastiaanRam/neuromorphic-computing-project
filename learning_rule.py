@@ -5,11 +5,11 @@ import numpy as np
 def get_s_neuron_activity(a_input):
     """Compute neuron activities based on input signals."""
     # I think np.maximum(0, a_input) should have the same result????
-    s_activities = np.arange(0, n_recorded)
-    for i in range(n_recorded):
-        s_activities[i] = delta(a_input[i])
-    return s_activities
-
+    # s_activities = np.arange(0, n_recorded)
+    # for i in range(n_recorded):
+    #     s_activities[i] = delta(a_input[i])
+    # return s_activities
+    return np.maximum(0, a_input)
 
 def get_a_synaptic_input(w, x):
     """Compute synaptic input to motor cortext neurons. With noise added to the weights"""
@@ -101,14 +101,16 @@ time_steps = np.arange(0, max_t * biological_time, biological_time)
 learning_rate = 0.01
 variance = 1  # Variance for the noise distribution
 # Parameters
-n_input = 100
-n_total = 340
-n_recorded = 40
+# n_input = 100
+# n_total = 340
+n_input = 4
+n_total = 1
+n_recorded = 1
 d = 2  # movement dimensionality
 weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
 
-target_position_l = np.random.choice([-1, 1], size=d)
-current_position_l = np.zeros(d)
+target_position_l = np.array([0,0])
+# current_position_l = np.zeros(d)
 # 4 corners of the gridworld
 target_directions = np.array([[1, 1], [1, -1], [-1, 1], [-1, -1]])
 target_directions = target_directions / np.linalg.norm(target_directions, axis=1, keepdims=True)
@@ -118,79 +120,92 @@ old_a_input = 0
 total_rewards = []
 
 # Setup environment
-env = gym.make("LunarLander-v2")
+env = gym.make("LunarLander-v2", render_mode="human")
 # Reset environment
-state, info = env.reset()
+actions = [0,1,2,3]
+episodes = 100
+for i in range(episodes):
+    state, info = env.reset()
+    # print(f"state: {state}")
+    for t in time_steps:
+        current_position_l = np.array([state[0], state[1]])
+        # Random action
+        weighted_actions = actions * weights
+        print(weighted_actions)
+        action = np.argmax(weighted_actions)
+        print(f"Action: {action}")
+        # Take a step in the environment
+        next_state, reward, done, truncated, info = env.step(action)
+        if done:
+            print("Finished")
+            print(f"rewards: {np.sum(total_rewards)}")
+            break
+        total_rewards.append(reward)
+        # Generate noise at each timestep from zero mean distribution:
 
-for t in time_steps:
-    # Random action
-    action = env.action_space.sample()
-    # Take a step in the environment
-    next_state, reward, done, truncated, info = env.step(action)
-    total_rewards.append(reward)
-    # Generate noise at each timestep from zero mean distribution:
+        # TODO: determine x_activities
+        # Determine activities of neurons s_i(t) as delta(a_i(t))
 
-    # TODO: determine x_activities
-    # Determine activities of neurons s_i(t) as delta(a_i(t))
+        # Series of six computations
+        #  (1). The desired direction of
+        #  cursor movement y*(t) was computed as the difference between the target
+        #  position l*(t) and the current cursor position l(t). By convention, the
+        #  desired direction y*(t) had unit Euclidean norm.
+        y_star = target_position_l - current_position_l
+        # Normalize y_star (Desired direction)
+        y_star = y_star / np.linalg.norm(y_star)
+        # (2) From the desired movement direction y*(t),
+        # the activities x1(t), . . . ,xm(t) of the neurons
+        # that provide input to the motorcortex neurons were computed via a fixed
+        # linear mapping. Details on how this mapping was determined are given
+        # below in Simulation details, Determination of the input activities
+        x_activities = get_x_neuron_activity(y_star, weights)
+        # (3) These input activities x were then used to calculate
+        # the total synaptic activities a1(t),...,antotal
+        # (t) and the resultant motor unit activities s1(t),...,sntotal (t) via
+        # Equations 2 and 3 above.
+        a_input = get_a_synaptic_input(weights, x_activities)
+        s_activities = get_s_neuron_activity(a_input)
+        print(s_activities)
+        # (4) The activities s1(t),...,sn(t) of the subset of
+        # modeled recorded neurons were used to determine the cursor velocity via
+        # their population activity vector,described in Equation 9 below in Simulation
+        # details, Generating cursor movements from neural activity.
+        y_t = [get_cursor_velocity(s_activities), get_cursor_velocity(s_activities)]
+        print(f"len y : {y_t}")
+        # (5) The synaptic
+        # weights wij defined in Equation 2 were updated according to a learning
+        # rule, defined by Equation 16 below in Results.
+        # EH rule
+        new_R_t = r_ang(y_t, y_star)
+        R_hat = low_pass_filter(R_t, new_R_t)
+        R_t = new_R_t
 
-    # Series of six computations
-    #  (1). The desired direction of
-    #  cursor movement y*(t) was computed as the difference between the target
-    #  position l*(t) and the current cursor position l(t). By convention, the
-    #  desired direction y*(t) had unit Euclidean norm.
-    y_star = target_position_l - current_position_l
-    # Normalize y_star (Desired direction)
-    y_star = y_star / np.linalg.norm(y_star)
-    # (2) From the desired movement direction y*(t),
-    # the activities x1(t), . . . ,xm(t) of the neurons
-    # that provide input to the motorcortex neurons were computed via a fixed
-    # linear mapping. Details on how this mapping was determined are given
-    # below in Simulation details, Determination of the input activities
-    x_activities = get_x_neuron_activity(y_star, weights)
-    # (3) These input activities x were then used to calculate
-    # the total synaptic activities a1(t),...,antotal
-    # (t) and the resultant motor unit activities s1(t),...,sntotal (t) via
-    # Equations 2 and 3 above.
-    a_input = get_a_synaptic_input(weights, x_activities)
-    s_activities = get_s_neuron_activity(a_input)
-    print(s_activities)
-    # (4) The activities s1(t),...,sn(t) of the subset of
-    # modeled recorded neurons were used to determine the cursor velocity via
-    # their population activity vector,described in Equation 9 below in Simulation
-    # details, Generating cursor movements from neural activity.
-    y_t = [get_cursor_velocity(s_activities), get_cursor_velocity(s_activities)]
-    print(f"len y : {y_t}")
-    # (5) The synaptic
-    # weights wij defined in Equation 2 were updated according to a learning
-    # rule, defined by Equation 16 below in Results.
-    # EH rule
-    new_R_t = r_ang(y_t, y_star)
-    R_hat = low_pass_filter(R_t, new_R_t)
-    R_t = new_R_t
+        a_input_hat = low_pass_filter(old_a_input, a_input)
+        old_a_input = a_input
+        print(f"A input {a_input}")
+        print(f"A input hat {a_input_hat}")
+        print(f"R t {R_t}")
+        print(f"R hat {R_hat}")
 
-    a_input_hat = low_pass_filter(old_a_input, a_input)
-    old_a_input = a_input
-    print(f"A input {a_input}")
-    print(f"A input hat {a_input_hat}")
-    print(f"R t {R_t}")
-    print(f"R hat {R_hat}")
-
-    a_difference = (a_input - a_input_hat)
-    r_difference = (reward - np.mean(total_rewards))
-    print(f"len a {len(a_difference)}")
-    print(a_difference.shape)
-    print(f"len r {r_difference}")
-    print(f"len x {len(x_activities)}")
-    # delta_weights = learning_rate * np.dot(np.dot(x_activities, a_difference), r_difference)
-    delta_weights = learning_rate * np.outer(x_activities, a_difference).T * r_difference
-    print(delta_weights)
-    weights += delta_weights
-    print(weights)
-    # 6) Finally, if the new  cursor location was close to the target (i.e., if l(t) l*(t)  0.05),
-    # we deemed it a hit, and the trial ended. Otherwise, we simulated another
-    # time step and returned to computation step 1. In summary, every trial
-    # was simulated as follows:
-    if np.linalg.norm(current_position_l - target_position_l) < 0.05:  # not sure if this needs to be normalized
-        print(f"Finished timestep: {t}")
-        print(f"Final weights: {weights}")
-        break
+        a_difference = (a_input - a_input_hat)
+        r_difference = (reward - np.mean(total_rewards))
+        print(f"len a {len(a_difference)}")
+        print(a_difference.shape)
+        print(f"len r {r_difference}")
+        print(f"len x {len(x_activities)}")
+        # delta_weights = learning_rate * np.dot(np.dot(x_activities, a_difference), r_difference)
+        delta_weights = learning_rate * np.outer(x_activities, a_difference).T * r_difference
+        print(delta_weights)
+        weights += delta_weights
+        print(weights)
+        # 6) Finally, if the new  cursor location was close to the target (i.e., if l(t) l*(t)  0.05),
+        # we deemed it a hit, and the trial ended. Otherwise, we simulated another
+        # time step and returned to computation step 1. In summary, every trial
+        # was simulated as follows:
+        if np.linalg.norm(current_position_l - target_position_l) < 0.05:  # not sure if this needs to be normalized
+            print(f"Finished timestep: {t}")
+            print(f"rewards: {total_rewards}")
+            print(f"Final weights: {weights}")
+            break
+env.close()
