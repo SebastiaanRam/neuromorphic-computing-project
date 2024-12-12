@@ -108,8 +108,8 @@ variance = 1  # Variance for the noise distribution
 # Parameters
 # n_input = 100
 # n_total = 340
-n_input = 4
-n_total = 1
+n_input = 100
+n_total = 4
 n_recorded = 4
 d = 2  # movement dimensionality
 weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
@@ -117,7 +117,7 @@ weights = np.random.uniform(-0.5, 0.5, (n_total, n_input))
 target_position_l = np.array([0,0])
 # current_position_l = np.zeros(d)
 # 4 corners of the gridworld
-target_directions = np.array([[1, 1], [1, -1], [-1, 1], [-1, -1]])
+target_directions = np.array([[1, 1], [1, 0], [-1, 1], [-1, 0]])
 target_directions = target_directions / np.linalg.norm(target_directions, axis=1, keepdims=True)
 R_t = 0
 old_a_input = 0
@@ -125,19 +125,17 @@ old_a_input = 0
 total_rewards = []
 
 # Setup environment
-env = gym.make("LunarLander-v3", render_mode="human")
+env = gym.make("LunarLander-v2", render_mode="human")
 # Reset environment
-actions = [0,1,2,3]
+actions = [1,1,1,1]
 episodes = 1000
 for i in range(episodes):
     state, info = env.reset()
+    action = 1
     # print(f"state: {state}")
     for t in time_steps:
         current_position_l = np.array([state[0], state[1]])
         # Random action
-        weighted_actions = actions * weights
-        print(weighted_actions)
-        action = np.argmax(weighted_actions)
         print(f"Action: {action}")
         # Take a step in the environment
         next_state, reward, done, truncated, info = env.step(action)
@@ -171,13 +169,15 @@ for i in range(episodes):
         # Equations 2 and 3 above.
         a_input = get_a_synaptic_input(weights, x_activities)
         s_activities = get_s_neuron_activity(a_input)
-        print(f"S activities: {s_activities}")
+        print(f"Ouptut {s_activities}")
+        weighted_actions = actions * s_activities
+        action = np.argmax(weighted_actions)
         # (4) The activities s1(t),...,sn(t) of the subset of
         # modeled recorded neurons were used to determine the cursor velocity via
         # their population activity vector,described in Equation 9 below in Simulation
         # details, Generating cursor movements from neural activity.
-        y_t = [get_cursor_velocity(s_activities), get_cursor_velocity(s_activities)]
-        print(f"len y : {y_t}")
+        y_t = get_cursor_velocity(s_activities, target_directions)
+        print(f"Cursor velocity : {y_t}")
         # (5) The synaptic
         # weights wij defined in Equation 2 were updated according to a learning
         # rule, defined by Equation 16 below in Results.
@@ -189,19 +189,12 @@ for i in range(episodes):
 
         a_input_hat = low_pass_filter(old_a_input, a_input)
         old_a_input = a_input
-        print(f"A input {a_input}")
-        print(f"A input hat {a_input_hat}")
 
         a_difference = (a_input - a_input_hat)
         r_difference = (R_t - R_hat)
-        print(f"len a {len(a_difference)}")
-        print(f"len r {r_difference}")
-        print(f"len x {len(x_activities)}")
         # delta_weights = learning_rate * np.dot(np.dot(x_activities, a_difference), r_difference)
         delta_weights = learning_rate * np.outer(x_activities, a_difference).T * r_difference
-        print(f"Delta weights: {delta_weights}")
         weights += delta_weights
-        print(f"Post update weights: {weights}")
         state = next_state
         # 6) Finally, if the new  cursor location was close to the target (i.e., if l(t) l*(t)  0.05),
         # we deemed it a hit, and the trial ended. Otherwise, we simulated another
