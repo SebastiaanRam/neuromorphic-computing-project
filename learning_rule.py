@@ -22,15 +22,25 @@ def get_a_synaptic_input(w, x):
 
 
 def get_x_neuron_activity(y_star, weights):
-    #Smiltis, page 4 end
-    # TODO: Let Q be the 3 ntotal matrix where column i is given by qi from
-    #  Equation 1 for i 1,...,ntotal.
-    Q = np.zeros((d, n_total))
-    Q_inverse = np.linalg.pinv(Q)
+    # Ensure the desired movement direction is normalized
+    y_star = y_star / np.linalg.norm(y_star)
+    
+    # Generate a random matrix Q representing the mapping of y_star to s_neuron activities - Neural connectivity weights
+    #  the range [−1,1] is a reasonable, biologically plausible, and computationally safe choice for initializing 𝑄. It balances randomness, symmetry, and numerical stability.
+    Q = np.random.uniform(-1, 1, (d, n_total))
+    Q_inverse = np.linalg.pinv(Q)  # Invert Q to map back from s_neuron to input activities
+    
+    # Compute intermediate target activities (s_tilde) in the motor cortex
     s_tilde = np.dot(Q_inverse, y_star)
-    W_total = weights  # TODO: This is wrong, should be the weights before learning
-    c_rate = 1  # Scaling factor for hertz
-    return c_rate * np.dot(np.linalg.pinv(W_total), s_tilde)
+    
+    # Scale input neuron activities to reflect pre-synaptic neuron population firing rates
+    c_rate = 10  # Scaling factor for converting normalized activities to firing rates in Hz
+    #  Input neuron activities (x_activities) based on a scaled inverse mapping of the target motor cortex activities (s_tilde) using the weight matrix (weights). 
+    x_activities = c_rate * np.dot(np.linalg.pinv(weights), s_tilde)
+    
+    # Apply a threshold-linear activation to ensure non-negative activities, maybe apply here instead of delta?
+    # x_activities = np.maximum(0, x_activities)
+    return x_activities
 
 
 def delta(x):
