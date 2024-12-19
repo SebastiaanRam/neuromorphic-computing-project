@@ -1,5 +1,8 @@
 import gymnasium as gym
+import matplotlib
+matplotlib.use('Agg')  # Use a backend suitable for your environment
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 def get_s_neuron_activity(a_input):
@@ -88,10 +91,10 @@ def low_pass_filter(previous, current, alpha=0.2):
     return (1 - alpha) * previous + alpha * current
 
 
-env = gym.make("LunarLander-v2", render_mode="human")
+env = gym.make("LunarLander-v2")
 
 # Simulation params
-max_t = 100
+max_t = 500
 # ,a timestep in our simulation corresponded to 1/30s in biological time.
 biological_time = 1 / 30
 time_steps = np.arange(0, max_t * biological_time, biological_time)
@@ -114,7 +117,8 @@ old_a_input = 0
 total_rewards = []
 
 actions = [1, 1, 1, 1]
-episodes = 1000
+episodes = 100
+episode_rewards = []
 for i in range(episodes):
     state, info = env.reset()
     action = 1
@@ -166,7 +170,7 @@ for i in range(episodes):
         # (5) The synaptic
         # weights wij defined in Equation 2 were updated according to a learning
         # rule, defined by Equation 16 below in Results.
-        new_R_t = r_ang(y_t, y_star)
+        new_R_t = reward
         R_hat = low_pass_filter(R_t, new_R_t)
         R_t = new_R_t
 
@@ -178,4 +182,26 @@ for i in range(episodes):
         delta_weights = learning_rate * np.outer(x_activities, a_difference).T * r_difference
         weights += delta_weights
         state = next_state
+
+    episode_rewards.append(np.sum(total_rewards))
 env.close()
+
+
+# Plot rewards over episodes
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, episodes + 1), episode_rewards, label="Episode Reward")
+plt.xlabel("Episode")
+plt.ylabel("Total Reward")
+plt.title("Rewards Over Episodes")
+plt.legend()
+plt.grid()
+plt.savefig("rewards_plot.png")
+
+
+
+
+
+
+
+
+
