@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
   && apt-get clean
 
 # Install Python dependencies
-RUN pip install python-dotenv gymnasium swig gymnasium[box2d] pyvirtualdisplay matplotlib gym_simplegrid gym-retro
+RUN pip install python-dotenv gymnasium swig gymnasium[box2d] pyvirtualdisplay matplotlib gym_simplegrid pyp
 
 ENTRYPOINT ["python3"]
 CMD ["test.py"]
