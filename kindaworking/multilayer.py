@@ -113,16 +113,24 @@ for episode in range(num_episodes):
             break
 
     rewards.append(episode_reward)
+cumsum_rewards = np.cumsum(rewards)
+plt.plot(cumsum_rewards)
+plt.xlabel("Episodes")
+plt.ylabel("Cumulative Reward")
+plt.title("X activities with weight update")
+plt.grid()
+plt.savefig("kindaworking/x_activities_with_weight_update_cumsum.png")
+
 
 # Plotting rewards
 plt.figure(figsize=(10, 6))
 plt.plot(rewards, label="Episode Rewards")
 plt.xlabel("Episode")
 plt.ylabel("Total Reward")
-plt.title("Training with Reward-Modulated Hebbian Learning (Multi-Layer Network)")
+plt.title("X activities with weight update")
 plt.legend()
 plt.grid()
-plt.savefig("kindaworking/rewards_plot_multi_layer.png")
+plt.savefig("kindaworking/x_activities_with_weight_update_rewards.png")
 
 
 env.close()
