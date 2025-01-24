@@ -14,5 +14,6 @@
 instead 6 and 7, run: 6. docker-compose run gymenv simple_grid.py
 
 If having issues running docker-compose, might be due to cache and previous version of docker compose.
-Run: docker-compose run --remove-orphans <your .py file>
-Rebuild the images
+
+1. Run: docker-compose run --remove-orphans <your .py file>
+2. Rebuild the images
