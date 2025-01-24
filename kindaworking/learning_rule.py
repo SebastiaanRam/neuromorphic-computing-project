@@ -113,8 +113,7 @@ def select_action(state, weights):
     return action
 
 
-# env = gym.make("LunarLander-v3")
-env = gym.make("LunarLander-v2")
+env = gym.make("LunarLander-v3")
 
 # Simulation params
 max_t = 1000

@@ -7,7 +7,7 @@ matplotlib.use('Agg')  # Use a backend suitable for your environment
 import matplotlib.pyplot as plt
 
 # Environment setup
-env = gym.make("LunarLander-v2")
+env = gym.make("LunarLander-v3")
 actions = env.action_space.n
 observations = env.observation_space.shape[0]
 print(f"Actions: {actions}")

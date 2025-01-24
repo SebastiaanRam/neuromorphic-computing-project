@@ -2,7 +2,7 @@ import gymnasium as gym
 import numpy as np
 import matplotlib.pyplot as plt
 # Environment setup
-env = gym.make("LunarLander-v2")
+env = gym.make("LunarLander-v3")
 input_neurons = env.observation_space.shape[0]  # m = 8
 motor_neurons = env.action_space.n             # n_total = 4
 
